@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI Resume & Portfolio Builder</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:      #010409;
+      --surface: #0d1117;
+      --card:    #161b22;
+      --border:  #21262d;
+      --text:    #e6edf3;
+      --sub:     #7d8590;
+      --accent:  #388bfd;
+      --accent2: #1f6feb;
+      --green:   #3fb950;
+      --red:     #f85149;
+      --warn:    #d29922;
+    }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* ─── HEADER ─── */
+    header {
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      padding: 14px 5%; display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .logo { display: flex; align-items: center; gap: 10px; }
+    .logo-icon {
+      width: 36px; height: 36px; background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px;
+    }
+    .logo-text { font-family: 'Space Grotesk'; font-weight: 700; font-size: 18px; }
+    .logo-sub { font-size: 11px; color: var(--sub); }
+    .header-badge {
+      background: rgba(56,139,253,0.12); border: 1px solid rgba(56,139,253,0.3);
+      color: var(--accent); padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 500;
+    }
+
+    /* ─── LAYOUT ─── */
+    .main-layout { display: flex; gap: 0; }
+    .sidebar {
+      width: 220px; min-width: 220px; background: var(--surface);
+      border-right: 1px solid var(--border); height: calc(100vh - 65px);
+      position: sticky; top: 65px; overflow-y: auto; padding: 20px 0;
+    }
+    .content { flex: 1; padding: 32px 5%; max-width: 820px; }
+
+    /* ─── SIDEBAR NAV ─── */
+    .step-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 20px; cursor: pointer; transition: all 0.2s;
+      border-left: 3px solid transparent; font-size: 14px; font-weight: 500; color: var(--sub);
+    }
+    .step-item:hover { background: var(--card); color: var(--text); }
+    .step-item.active { border-left-color: var(--accent); background: var(--card); color: var(--text); }
+    .step-item.done   { color: var(--green); }
+    .step-num {
+      width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--border);
+      display: flex; align-items: center; justify-content: center; font-size: 11px;
+      flex-shrink: 0; font-weight: 700;
+    }
+    .step-item.active .step-num { border-color: var(--accent); color: var(--accent); }
+    .step-item.done .step-num   { border-color: var(--green); background: rgba(63,185,80,0.15); color: var(--green); }
+    .sidebar-footer { padding: 20px; margin-top: 10px; }
+
+    /* ─── FORM CARD ─── */
+    .form-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; padding: 28px; margin-bottom: 24px; display: none;
+    }
+    .form-card.active { display: block; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+    .card-title { font-family: 'Space Grotesk'; font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+    .card-desc { color: var(--sub); font-size: 13px; margin-bottom: 24px; }
+
+    /* ─── FORM ELEMENTS ─── */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-grid .full { grid-column: 1 / -1; }
+    label { display: block; color: var(--sub); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; }
+    input, select, textarea {
+      width: 100%; background: var(--card); border: 1px solid var(--border);
+      border-radius: 8px; padding: 10px 14px; color: var(--text);
+      font-family: 'DM Sans', sans-serif; font-size: 14px; outline: none; transition: border-color 0.2s;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+    input::placeholder, textarea::placeholder { color: #484f58; }
+    textarea { resize: vertical; }
+    select option { background: var(--card); }
+
+    /* ─── REPEATABLE BLOCKS ─── */
+    .repeat-block {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 10px; padding: 18px; margin-bottom: 14px;
+    }
+    .repeat-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+    .repeat-label { color: var(--accent); font-size: 13px; font-weight: 600; }
+    .remove-btn { background: none; border: none; color: var(--red); cursor: pointer; font-size: 12px; font-weight: 500; }
+    .remove-btn:hover { text-decoration: underline; }
+    .add-btn {
+      background: transparent; border: 1px dashed var(--border);
+      color: var(--sub); padding: 10px 20px; border-radius: 8px; cursor: pointer;
+      font-size: 13px; transition: all 0.2s; width: 100%; margin-top: 4px;
+    }
+    .add-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ─── BUTTONS ─── */
+    .btn-row { display: flex; gap: 12px; justify-content: flex-end; margin-top: 8px; }
+    .btn {
+      padding: 11px 26px; border-radius: 8px; font-weight: 600; font-size: 14px;
+      cursor: pointer; transition: all 0.2s; border: none; font-family: inherit;
+    }
+    .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(56,139,253,0.4); }
+    .btn-secondary { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    .btn-secondary:hover { border-color: var(--sub); }
+    .btn-generate {
+      background: linear-gradient(135deg, #238636, #196c2e); color: white;
+      padding: 14px 40px; font-size: 16px; border-radius: 10px; width: 100%;
+      letter-spacing: 0.3px;
+    }
+    .btn-generate:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(35,134,54,0.4); }
+    .btn-generate:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    /* ─── NOTICE / INFO BOXES ─── */
+    .info-box {
+      background: rgba(56,139,253,0.08); border: 1px solid rgba(56,139,253,0.25);
+      border-radius: 8px; padding: 14px 16px; font-size: 13px; color: #79c0ff; margin-top: 12px;
+    }
+    .warn-box {
+      background: rgba(210,153,34,0.08); border: 1px solid rgba(210,153,34,0.3);
+      border-radius: 8px; padding: 12px 16px; font-size: 13px; color: #e3b341; margin-bottom: 16px;
+    }
+    .ats-box {
+      background: rgba(63,185,80,0.08); border: 1px solid rgba(63,185,80,0.25);
+      border-radius: 8px; padding: 14px 16px; font-size: 13px; color: #7ee787; margin-top: 10px;
+    }
+
+    /* ─── LOADING OVERLAY ─── */
+    #loading-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(1,4,9,0.85); backdrop-filter: blur(8px);
+      z-index: 999; flex-direction: column;
+      align-items: center; justify-content: center; gap: 16px;
+    }
+    #loading-overlay.show { display: flex; }
+    .spinner {
+      width: 52px; height: 52px;
+      border: 3px solid var(--border); border-top-color: var(--accent);
+      border-radius: 50%; animation: spin 0.9s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { font-size: 16px; font-weight: 500; color: var(--text); }
+    .loading-sub  { font-size: 13px; color: var(--sub); }
+
+    /* ─── ERROR MESSAGE ─── */
+    #error-msg {
+      background: rgba(248,81,73,0.1); border: 1px solid rgba(248,81,73,0.3);
+      border-radius: 8px; padding: 14px; font-size: 14px; color: var(--red);
+      margin-top: 12px; display: none;
+    }
+
+    /* ─── OPTIONAL TAG ─── */
+    .opt-tag {
+      display: inline-block; background: rgba(210,153,34,0.15);
+      border: 1px solid rgba(210,153,34,0.3); color: var(--warn);
+      padding: 1px 8px; border-radius: 4px; font-size: 10px; margin-left: 6px; vertical-align: middle;
+    }
+
+    /* ─── API KEY ─── */
+    .api-key-field { position: relative; }
+    .api-key-field input { padding-right: 44px; }
+    .toggle-pw {
+      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; cursor: pointer; color: var(--sub); font-size: 14px;
+    }
+
+    /* ─── SUMMARY BOX at generate step ─── */
+    .summary-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .chip {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 20px; padding: 4px 14px; font-size: 12px; color: var(--sub);
+    }
+    .chip.filled { border-color: var(--green); color: var(--green); background: rgba(63,185,80,0.08); }
+
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .form-grid { grid-template-columns: 1fr; }
+      .form-grid .full { grid-column: 1; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ─── HEADER ─── -->
+<header>
+  <div class="logo">
+    <div class="logo-icon">⚡</div>
+    <div>
+      <div class="logo-text">ResumeAI Builder</div>
+      <div class="logo-sub">Powered by Llama 3.1 8B (HuggingFace)</div>
+    </div>
+  </div>
+  <span class="header-badge">Powered by Llama-3.1-8B (HuggingFace)</span>
+</header>
+
+<!-- ─── LOADING OVERLAY ─── -->
+<div id="loading-overlay">
+  <div class="spinner"></div>
+  <div class="loading-text">Llama AI is crafting your documents…</div>
+  <div class="loading-sub">Generating Resume, Cover Letter & Portfolio</div>
+</div>
+
+<!-- ─── MAIN LAYOUT ─── -->
+<div class="main-layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div id="step-nav">
+      <div class="step-item active" data-step="0" onclick="goToStep(0)">
+        <span class="step-num">1</span> Personal Info
+      </div>
+      <div class="step-item" data-step="1" onclick="goToStep(1)">
+        <span class="step-num">2</span> Education
+      </div>
+      <div class="step-item" data-step="2" onclick="goToStep(2)">
+        <span class="step-num">3</span> Skills
+      </div>
+      <div class="step-item" data-step="3" onclick="goToStep(3)">
+        <span class="step-num">4</span> Projects
+      </div>
+      <div class="step-item" data-step="4" onclick="goToStep(4)">
+        <span class="step-num">5</span> Certifications
+      </div>
+      <div class="step-item" data-step="5" onclick="goToStep(5)">
+        <span class="step-num">6</span> Experience
+      </div>
+      <div class="step-item" data-step="6" onclick="goToStep(6)">
+        <span class="step-num">7</span> Job Target
+      </div>
+      <div class="step-item" data-step="7" onclick="goToStep(7)">
+        <span class="step-num">8</span> Generate
+      </div>
+    </div>
+    <div class="sidebar-footer">
+      <div style="font-size:11px; color:var(--sub); line-height:1.6;">
+        💡 Fill all sections for the best AI-generated resume.
+      </div>
+    </div>
+  </aside>
+
+  <!-- Content -->
+  <main class="content">
+
+    <!-- ─── STEP 0: Personal Info ─── -->
+    <div class="form-card active" id="step-0">
+      <div class="card-title">👤 Personal Information</div>
+      <div class="card-desc">Your contact details and online profiles</div>
+      <div class="form-grid">
+        <div><label>Full Name *</label><input id="name" placeholder="Rahul Sharma" /></div>
+        <div><label>Email *</label><input id="email" type="email" placeholder="rahul@example.com" /></div>
+        <div><label>Phone *</label><input id="phone" placeholder="+91 9876543210" /></div>
+        <div><label>Location *</label><input id="location" placeholder="Chennai, Tamil Nadu" /></div>
+        <div><label>LinkedIn URL <span class="opt-tag">Optional</span></label><input id="linkedin" placeholder="linkedin.com/in/rahulsharma" /></div>
+        <div><label>GitHub URL <span class="opt-tag">Optional</span></label><input id="github" placeholder="github.com/rahulsharma" /></div>
+        <div class="full"><label>Personal Website <span class="opt-tag">Optional</span></label><input id="website" placeholder="rahulsharma.dev" /></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="nextStep()">Continue →</button>
+      </div>
+    </div>
+
+    <!-- ─── STEP 1: Education ─── -->
+    <div class="form-card" id="step-1">
+      <div class="card-title">🎓 Education</div>
+      <div class="card-desc">Add your Bachelor's, Master's, or any academic qualifications</div>
+
+      <!-- Primary Degree -->
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:16px;">
+        <div style="color:var(--accent);font-size:13px;font-weight:600;margin-bottom:14px;">🎓 Primary Degree</div>
+        <div class="form-grid">
+          <div><label>Degree *</label><input id="degree" placeholder="B.Tech / B.E. / B.Sc / BCA" /></div>
+          <div><label>Field / Branch *</label><input id="field" placeholder="Computer Science & Engineering" /></div>
+          <div><label>University / College *</label><input id="university" placeholder="Anna University" /></div>
+          <div><label>College Location *</label><input id="uni_location" placeholder="Chennai, Tamil Nadu" /></div>
+          <div><label>Year of Graduation *</label><input id="graduation_year" placeholder="2022" /></div>
+          <div><label>CGPA / Percentage *</label><input id="cgpa" placeholder="8.5 / 85%" /></div>
+        </div>
+      </div>
+
+      <!-- Second Degree (optional) -->
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:16px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+          <div style="color:var(--accent);font-size:13px;font-weight:600;">🎓 Second Degree <span class="opt-tag">Optional</span></div>
+          <button class="remove-btn" onclick="clearSecondDegree()">✕ Clear</button>
+        </div>
+        <div class="form-grid">
+          <div><label>Degree</label><input id="degree2" placeholder="M.Tech / M.Sc / MBA / MCA" /></div>
+          <div><label>Field / Branch</label><input id="field2" placeholder="Data Science / Software Engineering" /></div>
+          <div><label>University / College</label><input id="university2" placeholder="IIT Madras" /></div>
+          <div><label>College Location</label><input id="uni_location2" placeholder="Chennai, Tamil Nadu" /></div>
+          <div><label>Year of Graduation</label><input id="graduation_year2" placeholder="2024" /></div>
+          <div><label>CGPA / Percentage</label><input id="cgpa2" placeholder="8.9 / 90%" /></div>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
+        <button class="btn btn-primary" onclick="nextStep()">Continue →</button>
+      </div>
+    </div>
+
+    <!-- ─── STEP 2: Skills ─── -->
+    <div class="form-card" id="step-2">
+      <div class="card-title">⚡ Skills</div>
+      <div class="card-desc">List your technical and interpersonal skills (comma-separated)</div>
+      <div class="form-grid">
+        <div class="full">
+          <label>Technical Skills *</label>
+          <textarea id="technical_skills" rows="4" placeholder="Python, JavaScript, React.js, Node.js, SQL, MongoDB, Machine Learning, TensorFlow, Git, Docker, REST APIs, AWS..."></textarea>
+        </div>
+        <div class="full">
+          <label>Soft Skills <span class="opt-tag">Optional</span></label>
+          <textarea id="soft_skills" rows="3" placeholder="Leadership, Problem Solving, Communication, Team Collaboration, Critical Thinking, Time Management..."></textarea>
+        </div>
+      </div>
+      <div class="info-box">💡 AI will group your skills into categories (Programming Languages, Frameworks, Tools, etc.) in the resume.</div>
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
+        <button class="btn btn-primary" onclick="nextStep()">Continue →</button>
+      </div>
+    </div>
+
+    <!-- ─── STEP 3: Projects ─── -->
+    <div class="form-card" id="step-3">
+      <div class="card-title">🚀 Projects</div>
+      <div class="card-desc">Showcase your best work (add up to 5 projects)</div>
+      <div id="projects-container"></div>
+      <button class="add-btn" onclick="addProject()">+ Add Another Project</button>
+      <div class="btn-row" style="margin-top:16px">
+        <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
+        <button class="btn btn-primary" onclick="nextStep()">Continue →</button>
+      </div>
+    </div>
+
+    <!-- ─── STEP 4: Certifications ─── -->
+    <div class="form-card" id="step-4">
+      <div class="card-title">🏆 Certifications</div>
+      <div class="card-desc">Add your certifications, courses, and achievements</div>
+      <div id="certs-container"></div>
+      <button class="add-btn" onclick="addCert()">+ Add Certification</button>
+      <div class="btn-row" style="margin-top:16px">
+        <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
+        <button class="btn btn-primary" onclick="nextStep()">Continue →</button>
+      </div>
+    </div>
+
+    <!-- ─── STEP 5: Experience ─── -->
+    <div class="form-card" id="step-5">
+      <div class="card-title">💼 Work Experience</div>
+      <div class="card-desc">Select your experience level and fill work history if applicable</div>
+      <div style="margin-bottom:20px">
+        <label>Experience Level *</label>
+        <select id="experience_level" onchange="toggleExperience()">
+          <option value="fresher">Fresher (No Experience)</option>
+          <option value="less than 1 year">Less than 1 Year</option>
+          <option value="1 year">1 Year</option>
+          <option value="2 years">2 Years</option>
+          <option value="3 years">3 Years</option>
+          <option value="4 years">4 Years</option>
+          <option value="5+ years">5+ Years</option>
+        </select>
+      </div>
+      <div id="experience-section" style="display:none">
+        <div id="experiences-container"></div>
+        <button class="add-btn" onclick="addExperience()">+ Add Another Experience</button>
+      </div>
+      <div id="fresher-notice" class="ats-box">
+        🌱 <strong>No worries!</strong> Your projects and skills will take centre stage in an impactful resume.
+      </div>
+      <div class="btn-row" style="margin-top:16px">
+        <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
+        <button class="btn btn-primary" onclick="nextStep()">Continue →</button>
+      </div>
+    </div>
+
+    <!-- ─── STEP 6: Job Target ─── -->
+    <div class="form-card" id="step-6">
+      <div class="card-title">🎯 Target Job</div>
+      <div class="card-desc">Provide a job role and description to tailor your resume (both optional)</div>
+      <div class="form-grid">
+        <div class="full">
+          <label>Target Job Role <span class="opt-tag">Optional</span></label>
+          <input id="job_role" placeholder="Full Stack Developer / Data Scientist / ML Engineer" />
+        </div>
+        <div class="full">
+          <label>Job Description <span class="opt-tag">Optional — AI will tailor resume to this JD</span></label>
+          <textarea id="job_description" rows="9" placeholder="Paste the full job description here...&#10;&#10;We are looking for a passionate Full Stack Developer...&#10;&#10;Requirements:&#10;• 2+ years experience with React and Node.js&#10;• Strong understanding of REST APIs..."></textarea>
+        </div>
+      </div>
+      <div class="info-box">✨ <strong>JD Tailoring:</strong> When a Job Description is provided, Llama AI extracts keywords, required skills, and responsibilities to optimize your resume specifically for ATS matching on that role.</div>
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
+        <button class="btn btn-primary" onclick="nextStep()">Review & Generate →</button>
+      </div>
+    </div>
+
+    <!-- ─── STEP 7: Generate ─── -->
+    <div class="form-card" id="step-7">
+      <div class="card-title">✨ Generate Documents</div>
+      <div class="card-desc">Review your info and click generate — AI will do the rest!</div>
+
+      <!-- Summary -->
+      <div style="background:var(--card); border:1px solid var(--border); border-radius:10px; padding:18px; margin-bottom:20px;">
+        <div style="font-size:13px; font-weight:600; margin-bottom:10px; color:var(--sub);">📋 Your Info Summary</div>
+        <div class="summary-chips" id="summary-chips"></div>
+      </div>
+
+      <div style="background:var(--card); border:1px solid var(--green); border-radius:10px; padding:18px; margin-bottom:20px;">
+        <div style="font-size:13px; font-weight:600; color:var(--green); margin-bottom:8px;">📦 What you'll download (ZIP):</div>
+        <div style="font-size:13px; color:var(--sub); line-height:2;">
+          📄 <strong style="color:var(--text)">YourName_Resume.docx</strong> — ATS-optimized Word document<br/>
+          ✉️ <strong style="color:var(--text)">YourName_Cover_Letter.docx</strong> — Professional cover letter<br/>
+          🌐 <strong style="color:var(--text)">YourName_Portfolio.html</strong> — Attractive single-page portfolio website
+        </div>
+      </div>
+
+      <div class="info-box" style="margin-bottom:20px;">
+        🤖 Powered by <strong>Llama 3.1 8B</strong> via HuggingFace — generating your personalized, ATS-friendly documents in seconds.
+      </div>
+
+      <div id="error-msg"></div>
+
+      <button class="btn btn-generate" id="generate-btn" onclick="generate()">
+        ⚡ Generate with AI & Download ZIP
+      </button>
+
+      <div class="btn-row" style="margin-top:14px; justify-content:flex-start">
+        <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ─────────────────────────────────────────── -->
+<script>
+  let currentStep = 0;
+  let projCount = 0;
+  let certCount = 0;
+  let expCount  = 0;
+
+  // ── Init ──
+  addProject();
+  addCert();
+
+  function goToStep(n) {
+    document.getElementById(`step-${currentStep}`).classList.remove('active');
+    document.querySelectorAll('.step-item').forEach(el => el.classList.remove('active'));
+    currentStep = n;
+    document.getElementById(`step-${n}`).classList.add('active');
+    document.querySelector(`.step-item[data-step="${n}"]`).classList.add('active');
+    if (n === 7) buildSummary();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function nextStep() { if (currentStep < 7) goToStep(currentStep + 1); }
+  function prevStep() { if (currentStep > 0) goToStep(currentStep - 1); }
+
+  // ── Mark step done ──
+  function markDone(n) {
+    const el = document.querySelector(`.step-item[data-step="${n}"]`);
+    if (el && !el.classList.contains('active')) el.classList.add('done');
+  }
+
+  // ─────────────────────────────────────────
+  // PROJECTS
+  // ─────────────────────────────────────────
+  function addProject() {
+    const i = projCount++;
+    const html = `
+      <div class="repeat-block" id="proj-${i}">
+        <div class="repeat-header">
+          <span class="repeat-label">Project ${i + 1}</span>
+          ${i > 0 ? `<button class="remove-btn" onclick="removeBlock('proj-${i}')">✕ Remove</button>` : ''}
+        </div>
+        <div class="form-grid">
+          <div class="full"><label>Project Name *</label><input name="proj_name" placeholder="AI Chatbot / E-Commerce App / ML Model"/></div>
+          <div class="full"><label>Description *</label><textarea name="proj_desc" rows="2" placeholder="Built an AI-powered chatbot that handles customer queries using NLP with 95% accuracy..."></textarea></div>
+          <div><label>Technologies Used</label><input name="proj_tech" placeholder="Python, Flask, OpenAI API, React"/></div>
+          <div><label>Demo Link <span class="opt-tag">Optional</span></label><input name="proj_demo" placeholder="https://myproject.vercel.app"/></div>
+          <div class="full"><label>GitHub Link <span class="opt-tag">Optional</span></label><input name="proj_github" placeholder="github.com/username/project-name"/></div>
+        </div>
+      </div>`;
+    document.getElementById('projects-container').insertAdjacentHTML('beforeend', html);
+  }
+
+  // ─────────────────────────────────────────
+  // CERTIFICATIONS
+  // ─────────────────────────────────────────
+  function addCert() {
+    const i = certCount++;
+    const html = `
+      <div class="repeat-block" id="cert-${i}">
+        <div class="repeat-header">
+          <span class="repeat-label">Certification ${i + 1}</span>
+          ${i > 0 ? `<button class="remove-btn" onclick="removeBlock('cert-${i}')">✕ Remove</button>` : ''}
+        </div>
+        <div class="form-grid">
+          <div class="full"><label>Certification Name</label><input name="cert_name" placeholder="AWS Certified Developer / Google Data Analytics"/></div>
+          <div><label>Issuing Organization</label><input name="cert_issuer" placeholder="Amazon Web Services / Coursera"/></div>
+          <div><label>Year</label><input name="cert_year" placeholder="2024"/></div>
+        </div>
+      </div>`;
+    document.getElementById('certs-container').insertAdjacentHTML('beforeend', html);
+  }
+
+  // ─────────────────────────────────────────
+  // EXPERIENCE
+  // ─────────────────────────────────────────
+  function addExperience() {
+    const i = expCount++;
+    const html = `
+      <div class="repeat-block" id="exp-${i}">
+        <div class="repeat-header">
+          <span class="repeat-label">Experience ${i + 1}</span>
+          ${i > 0 ? `<button class="remove-btn" onclick="removeBlock('exp-${i}')">✕ Remove</button>` : ''}
+        </div>
+        <div class="form-grid">
+          <div><label>Job Role</label><input name="exp_role" placeholder="Software Developer Intern"/></div>
+          <div><label>Company Name</label><input name="exp_company" placeholder="TCS / Infosys / Startup"/></div>
+          <div class="full"><label>Duration</label><input name="exp_duration" placeholder="Jan 2023 – Jun 2023"/></div>
+          <div class="full"><label>Key Responsibilities & Achievements</label>
+            <textarea name="exp_desc" rows="3" placeholder="Developed REST APIs using Node.js, reduced response time by 40%, collaborated with 5-member agile team..."></textarea>
+          </div>
+        </div>
+      </div>`;
+    document.getElementById('experiences-container').insertAdjacentHTML('beforeend', html);
+  }
+
+  function toggleExperience() {
+    const level = document.getElementById('experience_level').value;
+    const isFresher = level === 'fresher';
+    document.getElementById('experience-section').style.display = isFresher ? 'none' : 'block';
+    document.getElementById('fresher-notice').style.display   = isFresher ? 'block' : 'none';
+    if (!isFresher && expCount === 0) addExperience();
+  }
+
+  function removeBlock(id) {
+    const el = document.getElementById(id);
+    if (el) el.remove();
+  }
+
+  function clearSecondDegree() {
+    ['degree2','field2','university2','uni_location2','graduation_year2','cgpa2']
+      .forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+  }
+
+  // ─────────────────────────────────────────
+  // COLLECT DATA
+  // ─────────────────────────────────────────
+  function collectData() {
+    const g = id => (document.getElementById(id) || {value:''}).value.trim();
+
+    const projects = [];
+    document.querySelectorAll('#projects-container .repeat-block').forEach(block => {
+      const name = block.querySelector('[name=proj_name]')?.value.trim();
+      if (name) projects.push({
+        name,
+        description: block.querySelector('[name=proj_desc]')?.value.trim() || '',
+        tech:        block.querySelector('[name=proj_tech]')?.value.trim() || '',
+        demo:        block.querySelector('[name=proj_demo]')?.value.trim() || '',
+        github:      block.querySelector('[name=proj_github]')?.value.trim() || ''
+      });
+    });
+
+    const certifications = [];
+    document.querySelectorAll('#certs-container .repeat-block').forEach(block => {
+      const name = block.querySelector('[name=cert_name]')?.value.trim();
+      if (name) certifications.push({
+        name,
+        issuer: block.querySelector('[name=cert_issuer]')?.value.trim() || '',
+        year:   block.querySelector('[name=cert_year]')?.value.trim() || ''
+      });
+    });
+
+    const experiences = [];
+    document.querySelectorAll('#experiences-container .repeat-block').forEach(block => {
+      const company = block.querySelector('[name=exp_company]')?.value.trim();
+      if (company) experiences.push({
+        role:        block.querySelector('[name=exp_role]')?.value.trim() || '',
+        company,
+        duration:    block.querySelector('[name=exp_duration]')?.value.trim() || '',
+        description: block.querySelector('[name=exp_desc]')?.value.trim() || ''
+      });
+    });
+
+    return {
+      name:             g('name'),
+      email:            g('email'),
+      phone:            g('phone'),
+      location:         g('location'),
+      linkedin:         g('linkedin'),
+      github:           g('github'),
+      website:          g('website'),
+      degree:           g('degree'),
+      field:            g('field'),
+      university:       g('university'),
+      uni_location:     g('uni_location'),
+      graduation_year:  g('graduation_year'),
+      cgpa:             g('cgpa'),
+      degree2:          g('degree2'),
+      field2:           g('field2'),
+      university2:      g('university2'),
+      uni_location2:    g('uni_location2'),
+      graduation_year2: g('graduation_year2'),
+      cgpa2:            g('cgpa2'),
+      technical_skills: g('technical_skills'),
+      soft_skills:      g('soft_skills'),
+      projects,
+      certifications,
+      experience_level: g('experience_level'),
+      experiences,
+      job_role:         g('job_role'),
+      job_description:  g('job_description')
+    };
+  }
+
+  // ─────────────────────────────────────────
+  // SUMMARY CHIPS
+  // ─────────────────────────────────────────
+  function buildSummary() {
+    const d = collectData();
+    const chips = [
+      [d.name,            'Name'],
+      [d.email,           'Email'],
+      [d.degree,          'Degree'],
+      [d.technical_skills,'Skills'],
+      [d.projects.length > 0, `${d.projects.length} Project(s)`],
+      [d.certifications.filter(c=>c.name).length > 0, `${d.certifications.filter(c=>c.name).length} Cert(s)`],
+      [d.experience_level,'Exp Level'],
+      [d.job_role,        'Job Role'],
+      [d.job_description, 'JD Provided (AI will tailor)'],
+    ];
+    const container = document.getElementById('summary-chips');
+    container.innerHTML = chips.map(([val, label]) =>
+      val ? `<span class="chip filled">✓ ${label}</span>` : `<span class="chip">✗ ${label}</span>`
+    ).join('');
+  }
+
+  // ─────────────────────────────────────────
+  // GENERATE
+  // ─────────────────────────────────────────
+  async function generate() {
+    const data = collectData();
+    if (!data.name)    { showError('Please fill in your name (Step 1).'); return; }
+    if (!data.email)   { showError('Please fill in your email (Step 1).'); return; }
+    if (!data.degree)  { showError('Please fill in your education (Step 2).'); return; }
+    if (!data.technical_skills) { showError('Please add your skills (Step 3).'); return; }
+
+    hideError();
+    showLoading(true);
+    document.getElementById('generate-btn').disabled = true;
+
+    try {
+      const resp = await fetch('/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      if (!resp.ok) {
+        const err = await resp.json();
+        throw new Error(err.error || 'Server error');
+      }
+
+      const blob = await resp.blob();
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href     = url;
+      a.download = `${data.name.replace(/\s+/g,'_')}_Career_Documents.zip`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      showError('Error: ' + e.message);
+    } finally {
+      showLoading(false);
+      document.getElementById('generate-btn').disabled = false;
+    }
+  }
+
+  function showLoading(v) {
+    document.getElementById('loading-overlay').classList.toggle('show', v);
+  }
+  function showError(msg) {
+    const el = document.getElementById('error-msg');
+    el.textContent = '⚠️ ' + msg;
+    el.style.display = 'block';
+  }
+  function hideError() {
+    document.getElementById('error-msg').style.display = 'none';
+  }
+</script>
+</body>
+</html>
